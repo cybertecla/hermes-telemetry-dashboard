@@ -4,6 +4,8 @@ data/
 *.sqlite3-journal
 node_modules/
 dist/*.map
+__pycache__/
+*.pyc
 
 # local config / secrets
 config.json
