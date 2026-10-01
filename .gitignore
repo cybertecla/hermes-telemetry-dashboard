@@ -1,0 +1,14 @@
+# runtime data (never commit)
+data/
+*.sqlite3
+*.sqlite3-journal
+node_modules/
+dist/*.map
+
+# local config / secrets
+config.json
+.env
+*.local.yaml
+
+# OS
+.DS_Store

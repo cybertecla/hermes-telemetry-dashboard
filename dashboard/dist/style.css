@@ -1,0 +1,273 @@
+/* Hermes Telemetry Dashboard — dark-theme styles (dashboard palette).
+ * All selectors prefixed with .htd- per plugin CSS convention.
+ */
+
+.htd-root {
+  padding: 8px;
+  max-width: 1100px;
+}
+
+.htd-root h2 {
+  color: #fff;
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
+}
+
+.htd-muted {
+  color: #888;
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+.htd-mono {
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  font-size: 0.85rem;
+}
+
+.htd-error {
+  color: #ff6666;
+  font-size: 0.9rem;
+  background: #2a1a1e;
+  border: 1px solid #4a2a2e;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+}
+
+/* ----- nav tabs ----- */
+.htd-nav {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #2a2a3e;
+  padding-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.htd-tab {
+  background: #16162a;
+  border: 1px solid #2a2a3e;
+  color: #bbb;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.htd-tab:hover {
+  border-color: #6a8aff;
+  color: #fff;
+}
+
+.htd-tab-active {
+  background: #1a1a2e;
+  border-color: #6a8aff;
+  color: #fff;
+}
+
+/* ----- panels & tables ----- */
+.htd-panel {
+  background: #1a1a2e;
+  border: 1px solid #2a2a3e;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+
+.htd-panel-title {
+  color: #e0e0e0;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.htd-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.htd-table th {
+  text-align: left;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.72rem;
+  padding: 6px 8px;
+  border-bottom: 1px solid #2a2a3e;
+}
+
+.htd-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #23233a;
+  color: #e0e0e0;
+  vertical-align: top;
+}
+
+.htd-clickable tbody tr {
+  cursor: pointer;
+}
+
+.htd-clickable tbody tr:hover {
+  background: #20203a;
+}
+
+/* ----- KPI cards ----- */
+.htd-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.htd-kpi {
+  background: #1a1a2e;
+  border: 1px solid #2a2a3e;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.htd-kpi-label {
+  display: block;
+  color: #888;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+.htd-kpi-value {
+  color: #e0e0e0;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  font-size: 1.05rem;
+}
+
+/* ----- badges ----- */
+.htd-badge {
+  display: inline-block;
+  border-radius: 10px;
+  padding: 3px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.htd-badge-good {
+  background: #003322;
+  color: #6affaa;
+  border: 1px solid #005533;
+}
+
+.htd-badge-danger {
+  background: #330000;
+  color: #ff6666;
+  border: 1px solid #550000;
+}
+
+.htd-badge-warn {
+  background: #332a00;
+  color: #ffcc66;
+  border: 1px solid #554400;
+}
+
+.htd-badge-muted {
+  background: #16162a;
+  color: #888;
+  border: 1px solid #2a2a3e;
+}
+
+/* ----- rows & buttons ----- */
+.htd-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.htd-btn {
+  background: #16162a;
+  border: 1px solid #2a2a3e;
+  color: #e0e0e0;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.htd-btn:hover {
+  border-color: #6a8aff;
+}
+
+.htd-btn-back {
+  margin-bottom: 10px;
+}
+
+/* ----- drilldown dimensions ----- */
+.htd-dim-block {
+  margin-bottom: 12px;
+}
+
+.htd-dim-name {
+  color: #6a8aff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.htd-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.htd-pill {
+  background: #16162a;
+  border: 1px solid #2a2a3e;
+  color: #e0e0e0;
+  border-radius: 10px;
+  padding: 2px 10px;
+  font-size: 0.78rem;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+}
+
+/* ----- timeline ----- */
+.htd-tl-item {
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  padding: 5px 0;
+  border-bottom: 1px solid #23233a;
+}
+
+.htd-tl-stamp {
+  min-width: 170px;
+  color: #888;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.htd-tl-name {
+  color: #e0e0e0;
+}
+
+/* ----- package preview ----- */
+.htd-pre {
+  background: #16162a;
+  border: 1px solid #2a2a3e;
+  border-radius: 6px;
+  padding: 12px;
+  overflow: auto;
+  max-height: 480px;
+  color: #b8c4ff;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.htd-footer {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid #23233a;
+}

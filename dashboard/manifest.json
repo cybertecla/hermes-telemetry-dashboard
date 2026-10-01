@@ -1,0 +1,14 @@
+{
+  "name": "hermes-telemetry-dashboard",
+  "label": "Telemetry",
+  "description": "Visualize the shared metrics Hermes collects locally (telemetry.shared_metrics) — metric families, milestone timeline, install snapshot, and a preview of exactly what would be sent to Nous. Read-only; send stays OFF.",
+  "icon": "Activity",
+  "version": "0.1.0",
+  "tab": {
+    "path": "/telemetry",
+    "position": "after:system"
+  },
+  "entry": "dist/index.js",
+  "css": "dist/style.css",
+  "api": "plugin_api.py"
+}
