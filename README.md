@@ -39,7 +39,9 @@ Open `http://<dashboard-addr>/telemetry`. One screen shows everything Nous would
 
 ## Screenshots
 
-_To add before shipping: `assets/screenshot-overview.png`, `assets/screenshot-drilldown.png`._
+
+![Screenshot](assets/screenshot-overview.png)
+![Screenshot](assets/screenshot-drilldown.png)
 
 ## License
 
