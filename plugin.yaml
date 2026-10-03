@@ -1,6 +1,6 @@
 manifest_version: 1
 name: hermes-telemetry-dashboard
-version: 0.1.0
+version: 0.1.1
 description: "Dashboard-only read plugin: visualize the shared-metrics telemetry Hermes collects locally. Send stays off."
 author: cybertecla
 kind: standalone
