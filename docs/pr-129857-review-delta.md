@@ -1,21 +1,3 @@
-# PR #129857 — re-review delta (paste as a comment)
-
-Post this on https://github.com/NousResearch/hermes-agent/pull/129857
-
-The PR body itself cannot be edited with the current token (403 on the
-upstream repo), so it still reads `Pinned SHA 43f529d` and
-`Category: desktop`. The file is authoritative; this comment spells out
-the delta. Four manual edits the body needs if you want them fixed:
-
-| Field | Wrong in body | Correct |
-|---|---|---|
-| Pinned SHA | `43f529d` | `1399a77` |
-| Repo line | `v0.1.0 tagged` | `v0.1.1 tagged` |
-| Tier line | `Category: desktop` | `Category: general` |
-| Type of Change | Security fix + Tests unticked | tick both |
-
----
-
 Delta ready for re-review — @teknium1 the new pin is live.
 
 `sha:` now points at **1399a77** (tagged `v0.1.1`).
