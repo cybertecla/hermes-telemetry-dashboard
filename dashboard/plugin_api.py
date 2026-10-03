@@ -33,9 +33,52 @@ except Exception:  # dashboard-venv ImportError guard (see skill)
 
 router = APIRouter()
 
-HERMES_HOME = Path(os.environ.get("HERMES_HOME", Path.home() / ".hermes"))
-TELEMETRY_DB = HERMES_HOME / "telemetry" / "shared_metrics" / "metrics.sqlite3"
-CONFIG_YAML = HERMES_HOME / "config.yaml"
+# --------------------------------------------------------------------------
+# Path resolution (per call, not per import)
+# --------------------------------------------------------------------------
+def _hermes_home() -> Path:
+    """Resolve the Hermes home at call time.
+
+    A module-level constant froze the launch profile's home for the life of the
+    process, so a multi-profile dashboard could only ever see one profile. The
+    env var is read at call time too, so tests can flip it between requests.
+    """
+    try:
+        from hermes_constants import get_hermes_home
+        return Path(get_hermes_home())
+    except ImportError:
+        # Standalone dashboard import (hermes_constants not on sys.path).
+        val = os.environ.get("HERMES_HOME", "").strip()
+        return Path(val) if val else Path.home() / ".hermes"
+
+
+def _telemetry_db() -> Path:
+    return _hermes_home() / "telemetry" / "shared_metrics" / "metrics.sqlite3"
+
+
+def _config_yaml() -> Path:
+    return _hermes_home() / "config.yaml"
+
+
+def _scratch_dir() -> Path:
+    """Private scratch root for locked-DB copies.
+
+    Lives under our own Hermes home, not a shared /tmp: the copy carries
+    install_id, and a predictable path in a world-traversable /tmp lets another
+    local user read (or symlink-swap) it. Files inside are created 0600 by
+    mkstemp; the fallback mkdir below pins the dir to 0700.
+    """
+    try:
+        from plugins.plugin_storage import plugin_data_dir
+        return Path(plugin_data_dir("hermes-telemetry-dashboard"))
+    except Exception:
+        # Standalone dashboard import (no plugins package on sys.path): same
+        # layout, computed locally. mode=0o700 keeps a pre-existing shared umask
+        # from opening the dir up to other local users.
+        root = _hermes_home() / "plugin-data" / "hermes-telemetry-dashboard"
+        root.mkdir(mode=0o700, parents=True, exist_ok=True)
+        return root
+
 
 _MILESTONE_KEYS = (
     "milestone:setup_completed",
@@ -57,10 +100,11 @@ def _query(sql: str, args: tuple = ()) -> list[sqlite3.Row]:
     SQLite lock (see hermes-dashboard-plugins skill: Hermes-owned DBs are
     live; mode=ro + timeout may still hit `database is locked`).
     """
-    if not TELEMETRY_DB.exists():
-        raise HTTPException(404, f"telemetry DB not found: {TELEMETRY_DB}")
+    db_path = _telemetry_db()
+    if not db_path.exists():
+        raise HTTPException(404, f"telemetry DB not found: {db_path}")
     try:
-        conn = sqlite3.connect(f"file:{TELEMETRY_DB}?mode=ro", uri=True, timeout=5.0)
+        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True, timeout=5.0)
     except sqlite3.Error as exc:
         raise HTTPException(500, f"cannot open telemetry DB read-only: {exc}")
     conn.row_factory = sqlite3.Row
@@ -72,10 +116,30 @@ def _query(sql: str, args: tuple = ()) -> list[sqlite3.Row]:
                 raise HTTPException(500, f"query failed: {exc}")
     finally:
         conn.close()
-    # Live writer holds the lock: read a consistent scratch copy instead.
-    tmp = Path(tempfile.gettempdir()) / f"metrics-ro-{os.getpid()}.sqlite3"
+    # Live writer holds the lock: read a consistent scratch copy instead. A byte
+    # copy sidesteps SQLite locking (backup() on the locked conn would not).
+    # mkstemp gives O_EXCL + 0600 in our own 0700 dir, so no local user on a
+    # shared box can read the install_id inside or pre-plant a symlink for us to
+    # clobber; copy2/copy would follow such a symlink and re-apply the source's
+    # (0644) mode over our private file, so the bytes go through the fd instead.
+    fd, tmp = tempfile.mkstemp(prefix="metrics-ro-", suffix=".sqlite3", dir=_scratch_dir())
     try:
-        shutil.copy2(TELEMETRY_DB, tmp)
+        # os.fdopen is attempted BEFORE open(db_path): a `with A, B:` evaluates
+        # and enters A before evaluating B, so dst owns the mkstemp fd before
+        # any later call can raise. The writer can rotate/rename the DB between
+        # the exists() check above and this copy, and the finally below used to
+        # unlink the temp file while the raw fd stayed open — one leaked
+        # descriptor per failed copy, burned for the life of the dashboard.
+        # os.fdopen does not close the fd if it itself raises, so that case is
+        # covered explicitly.
+        try:
+            dst = os.fdopen(fd, "wb")
+        except BaseException:
+            os.close(fd)
+            raise
+        with dst:
+            with open(db_path, "rb") as src:
+                shutil.copyfileobj(src, dst)
         conn2 = sqlite3.connect(f"file:{tmp}?mode=ro", uri=True, timeout=5.0)
         conn2.row_factory = sqlite3.Row
         try:
@@ -83,7 +147,7 @@ def _query(sql: str, args: tuple = ()) -> list[sqlite3.Row]:
         finally:
             conn2.close()
     finally:
-        tmp.unlink(missing_ok=True)
+        Path(tmp).unlink(missing_ok=True)
 
 
 def _parse_dims(raw: str | None) -> dict[str, str]:
@@ -104,15 +168,16 @@ def _telemetry_config() -> dict[str, Any]:
     except Exception:
         info["source"] = "unavailable"
         return info
+    cfg_path = _config_yaml()
     try:
-        raw = yaml.safe_load(CONFIG_YAML.read_text()) or {}
+        raw = yaml.safe_load(cfg_path.read_text()) or {}
     except Exception:
         info["source"] = "unreadable"
         return info
     block = (raw.get("telemetry") or {}).get("shared_metrics") or {}
     info["enabled"] = block.get("enabled")
     info["send"] = block.get("send")
-    info["source"] = str(CONFIG_YAML)
+    info["source"] = str(cfg_path)
     return info
 
 
@@ -122,8 +187,9 @@ def _telemetry_config() -> dict[str, Any]:
 @router.get("/status")
 def status() -> dict[str, Any]:
     """Health endpoint — proves the plugin mounted and can see the DB."""
-    db_found = TELEMETRY_DB.exists()
-    state: dict[str, Any] = {"ok": True, "db_found": db_found, "db_path": str(TELEMETRY_DB)}
+    db_path = _telemetry_db()
+    db_found = db_path.exists()
+    state: dict[str, Any] = {"ok": True, "db_found": db_found, "db_path": str(db_path)}
     if db_found:
         try:
             tables = [r[0] for r in _query(
